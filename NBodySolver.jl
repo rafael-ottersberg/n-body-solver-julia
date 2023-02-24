@@ -23,17 +23,21 @@ function calculateacceleration(x, y, z, m, g)
     az = zeros(length(x))
 
     for i in eachindex(x)
+        axi, ayi, azi = 0., 0., 0.
         for j in eachindex(x)
             r_x = x[j] - x[i]
             r_y = y[j] - y[i]
             r_z = z[j] - z[i]
             r = sqrt(r_x^2 + r_y^2 + r_z^2)
             if r > 0
-                ax[i] += g * m[j] * r_x / r^3
-                ay[i] += g * m[j] * r_y / r^3
-                az[i] += g * m[j] * r_z / r^3
+                axi += g * m[j] * r_x / r^3
+                ayi += g * m[j] * r_y / r^3
+                azi += g * m[j] * r_z / r^3
             end
         end
+        ax[i] = axi
+        ay[i] = ayi
+        az[i] = azi
     end
     return ax, ay, az
 end
