@@ -18,22 +18,23 @@ function readdata(filename)
 end
 
 function calculateacceleration(x, y, z, m, g)
-    ax = zeros(length(x))
-    ay = zeros(length(x))
-    az = zeros(length(x))
+    n = length(x)
+    ax = Vector{Float64}(undef, n)
+    ay = Vector{Float64}(undef, n)
+    az = Vector{Float64}(undef, n)
 
-    for i in eachindex(x)
+    for i in 1:n
         axi, ayi, azi = 0., 0., 0.
-        for j in eachindex(x)
+        for j in 1:n
             if i != j
                 r_x = x[j] - x[i]
                 r_y = y[j] - y[i]
                 r_z = z[j] - z[i]
-                r = sqrt(r_x^2 + r_y^2 + r_z^2)
-                if r > 0
-                    axi += g * m[j] * r_x / r^3
-                    ayi += g * m[j] * r_y / r^3
-                    azi += g * m[j] * r_z / r^3
+                rcube = sqrt(r_x^2 + r_y^2 + r_z^2)^3
+                if rcube > 0
+                    axi += g * m[j] * r_x / rcube
+                    ayi += g * m[j] * r_y / rcube
+                    azi += g * m[j] * r_z / rcube
                 end
             end
         end
