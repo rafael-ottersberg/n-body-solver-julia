@@ -31,11 +31,10 @@ function calculateacceleration(x, y, z, m, g)
                 r_y = y[j] - y[i]
                 r_z = z[j] - z[i]
                 rcube = sqrt(r_x^2 + r_y^2 + r_z^2)^3
-                if rcube > 0
-                    axi += g * m[j] * r_x / rcube
-                    ayi += g * m[j] * r_y / rcube
-                    azi += g * m[j] * r_z / rcube
-                end
+                a = g * m[j] / rcube
+                axi += a * r_x
+                ayi += a * r_y
+                azi += a * r_z
             end
         end
         ax[i] = axi
@@ -47,15 +46,15 @@ end
 
 function leapfrog!(x, y, z, vx, vy, vz, m, g, dt, nsteps)
     for i in 1:nsteps
-        x += 0.5 * vx * dt
-        y += 0.5 * vy * dt
-        z += 0.5 * vz * dt
+        x += 0.5 * dt * vx
+        y += 0.5 * dt * vy
+        z += 0.5 * dt * vz
         ax, ay, az = calculateacceleration(x, y, z, m, g)
         vx += ax * dt
         vy += ay * dt
         vz += az * dt
-        x += 0.5 * vx * dt
-        y += 0.5 * vy * dt
-        z += 0.5 * vz * dt
+        x += 0.5 * dt * vx
+        y += 0.5 * dt * vy
+        z += 0.5 * dt * vz
     end
 end
