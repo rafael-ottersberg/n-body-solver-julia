@@ -5,12 +5,15 @@ mutable struct Body
     x::Float64
     y::Float64
     z::Float64
+
     vx::Float64
     vy::Float64
     vz::Float64
+
     ax::Float64
     ay::Float64
     az::Float64
+
     m::Float64
 end
 
@@ -40,12 +43,11 @@ function readdata(filename)
     return bodies
 end
 
-function calculateacceleration(bodies, g)
-    n = length(bodies)
-    for i in 1:n
+function calculateacceleration!(bodies, g)
+    Threads.@threads for i in eachindex(bodies)
         axi, ayi, azi = 0., 0., 0.
         bi = bodies[i]
-        for j in 1:n
+        for j in eachindex(bodies)
             if i != j
                 bj = bodies[j]
                 r_x = bj.x - bi.x
@@ -63,7 +65,6 @@ function calculateacceleration(bodies, g)
         bi.az = azi
         bodies[i] = bi
     end
-    return bodies
 end
 
 function leapfrog!(bodies, g, dt, nsteps)
@@ -76,7 +77,8 @@ function leapfrog!(bodies, g, dt, nsteps)
             body.y += dt_ * body.vy
             body.z += dt_ * body.vz
         end
-        bodies = calculateacceleration(bodies, g)
+
+        calculateacceleration!(bodies, g)
 
         for i in eachindex(bodies)
             body = bodies[i]
