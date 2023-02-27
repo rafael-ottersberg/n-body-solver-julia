@@ -6,14 +6,19 @@ function readdata(filename)
     au = 1.5e11
     m_sol = 2e30
     day = 24.0 * 60.0 * 60.0
+    
+    scaledist(vector) = vector * au
+    scalespeed(vector) = vector * au / day
 
-    x = df.x * au
-    y = df.y * au
-    z = df.z * au
-    vx = df.vx * au / day
-    vy = df.vy * au / day
-    vz = df.vz * au / day
+    x = scaledist(df.x)
+    y = scaledist(df.y)
+    z = scaledist(df.z)
+    vx = scalespeed(df.vx)
+    vy = scalespeed(df.vy)
+    vz = scalespeed(df.vz)
+
     m = df.m * m_sol
+
     return x, y, z, vx, vy, vz, m
 end
 
@@ -45,16 +50,18 @@ function calculateacceleration(x, y, z, m, g)
 end
 
 function leapfrog!(x, y, z, vx, vy, vz, m, g, dt, nsteps)
+    dt_ = 0.5 * dt
+
     for i in 1:nsteps
-        x += 0.5 * dt * vx
-        y += 0.5 * dt * vy
-        z += 0.5 * dt * vz
+        x = dt_ * vx
+        y = dt_ * vy
+        z = dt_ * vz
         ax, ay, az = calculateacceleration(x, y, z, m, g)
         vx += ax * dt
         vy += ay * dt
         vz += az * dt
-        x += 0.5 * dt * vx
-        y += 0.5 * dt * vy
-        z += 0.5 * dt * vz
+        x += dt_ * vx
+        y += dt_ * vy
+        z += dt_ * vz
     end
 end
