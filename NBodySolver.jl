@@ -1,6 +1,19 @@
 using CSV
 using DataFrames
 
+mutable struct Body
+    x::Float64
+    y::Float64
+    z::Float64
+    vx::Float64
+    vy::Float64
+    vz::Float64
+    ax::Float64
+    ay::Float64
+    az::Float64
+    m::Float64
+end
+
 function readdata(filename)
     df = CSV.read(filename, DataFrame)
     au = 1.5e11
@@ -19,49 +32,61 @@ function readdata(filename)
 
     m = df.m * m_sol
 
-    return x, y, z, vx, vy, vz, m
+    bodies = Vector{Body}(undef,length(x))
+    for i in eachindex(x)
+        bodies[i] = Body(x[i], y[i], z[i], vx[i], vy[i], vz[i], 0., 0., 0., m[i])
+    end
+
+    return bodies
 end
 
-function calculateacceleration(x, y, z, m, g)
-    n = length(x)
-    ax = Vector{Float64}(undef, n)
-    ay = Vector{Float64}(undef, n)
-    az = Vector{Float64}(undef, n)
-
+function calculateacceleration(bodies, g)
+    n = length(bodies)
     for i in 1:n
         axi, ayi, azi = 0., 0., 0.
+        bi = bodies[i]
         for j in 1:n
             if i != j
-                r_x = x[j] - x[i]
-                r_y = y[j] - y[i]
-                r_z = z[j] - z[i]
+                bj = bodies[j]
+                r_x = bj.x - bi.x
+                r_y = bj.y - bi.y
+                r_z = bj.z - bi.z
                 rcube = sqrt(r_x^2 + r_y^2 + r_z^2)^3
-                a = g * m[j] / rcube
+                a = g * bj.m / rcube
                 axi += a * r_x
                 ayi += a * r_y
                 azi += a * r_z
             end
         end
-        ax[i] = axi
-        ay[i] = ayi
-        az[i] = azi
+        bi.ax = axi
+        bi.ay = ayi
+        bi.az = azi
+        bodies[i] = bi
     end
-    return ax, ay, az
+    return bodies
 end
 
-function leapfrog!(x, y, z, vx, vy, vz, m, g, dt, nsteps)
+function leapfrog!(bodies, g, dt, nsteps)
     dt_ = 0.5 * dt
 
     for i in 1:nsteps
-        x = dt_ * vx
-        y = dt_ * vy
-        z = dt_ * vz
-        ax, ay, az = calculateacceleration(x, y, z, m, g)
-        vx += ax * dt
-        vy += ay * dt
-        vz += az * dt
-        x += dt_ * vx
-        y += dt_ * vy
-        z += dt_ * vz
+        for i in eachindex(bodies)
+            body = bodies[i]
+            body.x += dt_ * body.vx
+            body.y += dt_ * body.vy
+            body.z += dt_ * body.vz
+        end
+        bodies = calculateacceleration(bodies, g)
+
+        for i in eachindex(bodies)
+            body = bodies[i]
+            body.vx += body.ax * dt
+            body.vy += body.ay * dt
+            body.vz += body.az * dt
+            body.x += dt_ * body.vx
+            body.y += dt_ * body.vy
+            body.z += dt_ * body.vz
+            bodies[i] = body
+        end
     end
 end
