@@ -46,10 +46,10 @@ end
 function calculateacceleration!(bodies, g)
     Threads.@threads for i in eachindex(bodies)
         axi, ayi, azi = 0., 0., 0.
-        bi = bodies[i]
+        @inbounds bi = bodies[i]
         for j in eachindex(bodies)
             if i != j
-                bj = bodies[j]
+                @inbounds bj = bodies[j]
                 r_x = bj.x - bi.x
                 r_y = bj.y - bi.y
                 r_z = bj.z - bi.z
@@ -63,7 +63,7 @@ function calculateacceleration!(bodies, g)
         bi.ax = axi
         bi.ay = ayi
         bi.az = azi
-        bodies[i] = bi
+        @inbounds bodies[i] = bi
     end
 end
 
@@ -72,7 +72,7 @@ function leapfrog!(bodies, g, dt, nsteps)
 
     for i in 1:nsteps
         for i in eachindex(bodies)
-            body = bodies[i]
+            @inbounds body = bodies[i]
             body.x += dt_ * body.vx
             body.y += dt_ * body.vy
             body.z += dt_ * body.vz
@@ -81,14 +81,14 @@ function leapfrog!(bodies, g, dt, nsteps)
         calculateacceleration!(bodies, g)
 
         for i in eachindex(bodies)
-            body = bodies[i]
+            @inbounds body = bodies[i]
             body.vx += body.ax * dt
             body.vy += body.ay * dt
             body.vz += body.az * dt
             body.x += dt_ * body.vx
             body.y += dt_ * body.vy
             body.z += dt_ * body.vz
-            bodies[i] = body
+            @inbounds bodies[i] = body
         end
     end
 end
